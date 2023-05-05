@@ -48,14 +48,18 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public Optional<EmployeeDTO> partialUpdate(EmployeeDTO employeeDTO) {
-        return Optional.empty();
-    }
+        log.debug("Request to partially update Employee : {}", employeeDTO);
 
-    //    @Override
-    //    public Optional<EmployeeDTO> partialUpdate(EmployeeDTO employeeDTO) {
-    //        log.debug("Request to partially update Employee : {}", employeeDTO);
-    //
-    //    }
+        return employeeRepository
+            .findById(employeeDTO.getId())
+            .map(exitstingEmployee -> {
+                employeeMapper.partialUpdate(exitstingEmployee, employeeDTO);
+
+                return exitstingEmployee;
+            })
+            .map(employeeRepository::save)
+            .map(employeeMapper::toDto);
+    }
 
     @Override
     @Transactional(readOnly = true)
