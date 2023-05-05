@@ -5,6 +5,7 @@
 /target/classes/static/**
 /src/test/javascript/coverage/
 
+
 ######################
 # Node
 ######################
@@ -14,6 +15,12 @@ node_modules/
 npm-debug.log.*
 /.awcache/*
 /.cache-loader/*
+.devcontainer/
+.husky/
+.idea/
+.jhipster/
+.mvn/
+
 
 ######################
 # SASS
@@ -157,3 +164,4 @@ Desktop.ini
 ######################
 /coverage/
 /.nyc_output/
+
