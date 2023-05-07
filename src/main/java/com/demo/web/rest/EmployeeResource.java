@@ -1,9 +1,9 @@
 package com.demo.web.rest;
 
 import com.demo.domain.Employee;
-import com.demo.domain.Product;
 import com.demo.repository.EmployeeRepository;
-import com.demo.repository.ProductRepository;
+import com.demo.service.dto.EmployeeDTO;
+import com.demo.service.impl.EmployeeServiceImpl;
 import com.demo.web.rest.errors.BadRequestAlertException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -12,7 +12,6 @@ import java.util.Objects;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -38,11 +37,11 @@ public class EmployeeResource {
     private String applicationName;
 
     private final EmployeeRepository employeeRepository;
-    private final ProductRepository productRepository;
+    private final EmployeeServiceImpl employeeService;
 
-    public EmployeeResource(EmployeeRepository employeeRepository, ProductRepository productRepository) {
+    public EmployeeResource(EmployeeRepository employeeRepository, EmployeeServiceImpl employeeService) {
         this.employeeRepository = employeeRepository;
-        this.productRepository = productRepository;
+        this.employeeService = employeeService;
     }
 
     @GetMapping("/employees")
@@ -75,7 +74,7 @@ public class EmployeeResource {
         }
         Employee result = employeeRepository.save(employee);
         return ResponseEntity
-            .created(new URI("/api/employee/" + result.getId()))
+            .created(new URI("/api/employees/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
             .body(result);
     }
@@ -115,15 +114,15 @@ public class EmployeeResource {
     }
 
     @PatchMapping(value = "/employee/{id}", consumes = { "application/json", "application/merge-patch+json" })
-    public ResponseEntity<Employee> partialUpdateEmployee(
+    public ResponseEntity<EmployeeDTO> partialUpdateEmployee(
         @PathVariable(value = "id", required = false) final Long id,
-        @RequestBody Employee employee
-    ) throws URISyntaxException {
-        log.debug("REST request to partial update employee partially : {}, {}", id, employee);
-        if (employee.getId() == null) {
+        @RequestBody EmployeeDTO employeeDTO
+    ) {
+        log.debug("REST request to partial update employee partially : {}, {}", id, employeeDTO);
+        if (employeeDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        if (!Objects.equals(id, employee.getId())) {
+        if (!Objects.equals(id, employeeDTO.getId())) {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
@@ -131,29 +130,11 @@ public class EmployeeResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Optional<Employee> result = employeeRepository
-            .findById(employee.getId())
-            .map(existingEmployee -> {
-                if (employee.getName() != null) {
-                    existingEmployee.setName(employee.getName());
-                }
-                if (employee.getAge() != null) {
-                    existingEmployee.setAge(employee.getAge());
-                }
-                if (employee.getGender() != null) {
-                    existingEmployee.setGender(employee.getGender());
-                }
-                if (employee.getGrade() != null) {
-                    existingEmployee.setGrade(employee.getGrade());
-                }
-
-                return existingEmployee;
-            })
-            .map(employeeRepository::save);
+        Optional<EmployeeDTO> result = employeeService.partialUpdate(employeeDTO);
 
         return ResponseUtil.wrapOrNotFound(
             result,
-            HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, employee.getId().toString())
+            HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, employeeDTO.getId().toString())
         );
     }
 }

@@ -81,8 +81,7 @@ public class BlogResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/blogs/{id}")
-    public ResponseEntity<BlogDTO> updateBlog(@PathVariable(value = "id", required = false) final Long id, @RequestBody BlogDTO blogDTO)
-        throws URISyntaxException {
+    public ResponseEntity<BlogDTO> updateBlog(@PathVariable(value = "id", required = false) final Long id, @RequestBody BlogDTO blogDTO) {
         log.debug("REST request to update Blog : {}, {}", id, blogDTO);
         if (blogDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
